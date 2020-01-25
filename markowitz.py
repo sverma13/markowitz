@@ -1,4 +1,4 @@
-# Data analysis library
+# Data analysis libraries
 import pandas as pd
 import numpy as np
 
@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # List stock tickers in portfolio
-stockPort = ['AAPL', 'FB', 'GE', 'JPM', 'MSFT', 'V']
+stockPort = ['AAPL', 'AMZN', 'FB', 'GE', 'JPM', 'MSFT', 'TSLA', 'V']
 
 # Create empty dataframe of daily stock returns matrix
 stockRetMat = pd.DataFrame(columns=stockPort)
@@ -48,7 +48,7 @@ def randomPortfolios(numPortfolios, meanReturns, covMatrix, riskFreeRate):
 returns = stockRetMat #matrix, 250 daily returns for each stock
 meanReturns = returns.mean() #array, 1 average return for each stock
 covMatrix = returns.cov() #square matrix of each stock
-numPortfolios = 1000
+numPortfolios = 25000
 riskFreeRate = 0
 
 results, weights = randomPortfolios(numPortfolios, meanReturns, covMatrix, riskFreeRate)
@@ -68,17 +68,21 @@ maxSharpeAlloc = maxSharpeAlloc.T.sort_values(by=['Allocation'], ascending=False
 print(maxSharpeAlloc)
 print(type(maxSharpeAlloc))
 
-maxSharpeAlloc.plot.bar()
+maxSharpeAlloc.plot.pie(subplots=True, autopct='%1.2f%%', legend=False, pctdistance=1.1, labeldistance=1.3)
+plt.title('Allocation: Max Sharpe Ratio')
+plt.show()
 
 #Global minimum volatility
-gmvIndex =np.argmax(results[0])
+gmvIndex =np.argmin(results[0])
 stdGmv = results[0,gmvIndex]
 returnGmv = results[1,gmvIndex]
 gmvArray = weights[gmvIndex].round(4)
 gmvAlloc = pd.DataFrame(gmvArray, index=stockPort, columns=['Allocation']).T
 gmvAlloc = gmvAlloc.T.sort_values(by=['Allocation'], ascending=True)
 
-gmvAlloc.plot.bar()
+gmvAlloc.plot.pie(subplots=True, autopct='%1.2f%%', legend=False, pctdistance=1.1, labeldistance=1.3)
+plt.title('Allocation: Global Minimum Volatility')
+plt.show()
 
 plt.figure()
 plt.scatter(results[0,:], results[1,:], c=results[2,:])
