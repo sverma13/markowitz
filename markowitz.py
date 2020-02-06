@@ -33,8 +33,8 @@ def stockReturnCol(ticker):
     data.set_index('Date', inplace=True)
 
     data['Returns'] = data['Adj Close'].pct_change()  # create a column of daily returns
-    stockReturns = data['Returns'].dropna()  # remove entries with N/A dat
-    return stockReturns
+    stock_returns = data['Returns'].dropna()  # remove entries with N/A dat
+    return stock_returns
 
 
 # For each stock in the portfolio, generate a column of its daily returns and store it in the stock return matrix
@@ -42,69 +42,86 @@ for stock in stock_port:
     stock_ret_mat[stock] = stockReturnCol(stock)
 
 # Generate a correlation matrix of the stock returns using the Pearson method
-corrMatrix = stock_ret_mat.corr(method='pearson')
+corr_matrix = stock_ret_mat.corr(method='pearson')
 
 
-def randomPortfolios(numPortfolios, meanReturns, covMatrix, riskFreeRate):
-    results = np.zeros((3, numPortfolios))
-    weightsRecord = []
-    for i in range(numPortfolios):
+def randomPortfolios(num_portfolios, mean_returns, cov_matrix, risk_free_rate):
+    results = np.zeros((3, num_portfolios))
+    weights_record = []
+    for i in range(num_portfolios):
         weights = np.random.random_sample(len(stock_port))
         weights /= np.sum(weights)
-        weightsRecord.append(weights)
-        #portfolioStdDev, portfolioReturn = portfolioPerformance(weights, meanReturns, covMatrix)
-        portfolioReturn = np.sum(meanReturns * weights) * 252
-        portfolioStdDev = np.sqrt(np.dot(weights.T, np.dot(covMatrix, weights))) * np.sqrt(252)
-        results[0, i] = portfolioStdDev
-        results[1, i] = portfolioReturn
-        results[2, i] = (portfolioReturn - riskFreeRate) / portfolioStdDev
-    return results, weightsRecord
+        weights_record.append(weights)
+        portfolio_return = np.sum(mean_returns * weights) * 252
+        portfolio_std_dev = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights))) * np.sqrt(252)
+        results[0, i] = portfolio_std_dev
+        results[1, i] = portfolio_return
+        results[2, i] = (portfolio_return - risk_free_rate) / portfolio_std_dev
+    return results, weights_record
 
 
 returns = stock_ret_mat  # matrix, 250 daily returns for each stock
-meanReturns = returns.mean()  # array, 1 average return for each stock
-covMatrix = returns.cov()  # square matrix of each stock
-numPortfolios = 25000
-riskFreeRate = 0.0152  # US Treasury, 52-week value start of 2020
+mean_returns = returns.mean()  # array, 1 average return for each stock
+cov_matrix = returns.cov()  # square matrix of each stock
+NUM_PORTFOLIOS = 25000
+RISK_FREE_RATE = 0.0152  # US Treasury, 52-week value start of 2020
 
-results, weights = randomPortfolios(numPortfolios, meanReturns, covMatrix, riskFreeRate)
+results, weights = randomPortfolios(NUM_PORTFOLIOS, mean_returns, cov_matrix, RISK_FREE_RATE)
 
 # Max Sharpe ratio
-msrIndex = np.argmax(results[2])
-stdSharpe = results[0, msrIndex]
-returnSharpe = results[1, msrIndex]
-print(stdSharpe)
-print(returnSharpe)
+msr_index = np.argmax(results[2])
+std_sharpe = results[0, msr_index]
+return_sharpe = results[1, msr_index]
+print(std_sharpe)
+print(return_sharpe)
 
-msrArray = weights[msrIndex].round(4)
-msrAlloc = pd.DataFrame(msrArray, index=stock_port, columns=['Allocation']).T
-#print(msrAlloc)
-#print(type(msrAlloc))
-msrAlloc = msrAlloc.T.sort_values(by=['Allocation'], ascending=False)
-#print(msrAlloc)
-#print(type(msrAlloc))
+msr_array = weights[msr_index].round(4)
+msr_alloc = pd.DataFrame(msr_array, index=stock_port, columns=['Allocation']).T
+#print(msr_alloc)
+#print(type(msr_alloc))
+msr_alloc = msr_alloc.T.sort_values(by=['Allocation'], ascending=False)
+#print(msr_alloc)
+#print(type(msr_alloc))
 
-msrAlloc.plot.pie(subplots=True, autopct='%1.2f%%', legend=False, pctdistance=1.1, labeldistance=1.3)
+msr_alloc.plot.pie(subplots=True,
+                   autopct='%1.2f%%',
+                   legend=False,
+                   pctdistance=1.1,
+                   labeldistance=1.3)
 plt.title('Allocation: Max Sharpe Ratio')
 plt.show()
 
 # Global minimum volatility
-gmvIndex = np.argmin(results[0])
-stdGmv = results[0, gmvIndex]
-returnGmv = results[1, gmvIndex]
-gmvArray = weights[gmvIndex].round(4)
-gmvAlloc = pd.DataFrame(gmvArray, index=stock_port, columns=['Allocation']).T
-gmvAlloc = gmvAlloc.T.sort_values(by=['Allocation'], ascending=True)
+gmv_index = np.argmin(results[0])
+std_gmv = results[0, gmv_index]
+return_gmv = results[1, gmv_index]
+gmv_array = weights[gmv_index].round(4)
+gmv_alloc = pd.DataFrame(gmv_array, index=stock_port, columns=['Allocation']).T
+gmv_alloc = gmv_alloc.T.sort_values(by=['Allocation'], ascending=True)
 
-gmvAlloc.plot.pie(subplots=True, autopct='%1.2f%%', legend=False, pctdistance=1.1, labeldistance=1.3)
+gmv_alloc.plot.pie(subplots=True,
+                   autopct='%1.2f%%',
+                   legend=False,
+                   pctdistance=1.1,
+                   labeldistance=1.3)
 plt.title('Allocation: Global Minimum Volatility')
 plt.show()
 
 plt.figure()
 plt.scatter(results[0, :], results[1, :], c=results[2, :])
 plt.colorbar()
-plt.scatter(stdSharpe, returnSharpe, marker='*', color='r', s=500, label='MSR')
-plt.scatter(stdGmv, returnGmv, marker='*', color='g', s=500, label='GMV')
+plt.scatter(x=std_sharpe,
+            y=return_sharpe,
+            marker='*',
+            color='r',
+            s=500,
+            label='MSR')
+plt.scatter(x=std_gmv,
+            y=return_gmv,
+            marker='*',
+            color='g',
+            s=500,
+            label='GMV')
 plt.legend()
 plt.title('Efficient Fronter - Markowitz Portfolios')
 plt.xlabel('Volatility')
