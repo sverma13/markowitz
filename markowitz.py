@@ -108,7 +108,9 @@ plt.title('Allocation: Global Minimum Volatility')
 plt.show()
 
 plt.figure()
-plt.scatter(results[0, :], results[1, :], c=results[2, :])
+plt.scatter(x=results[0, :],
+            y=results[1, :],
+            c=results[2, :])
 plt.colorbar()
 plt.scatter(x=std_sharpe,
             y=return_sharpe,
