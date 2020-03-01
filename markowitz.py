@@ -35,19 +35,7 @@ def randomPortfolios(num_portfolios, mean_returns, cov_matrix, risk_free_rate):
 
 
 # List stock tickers in portfolio
-stock_port = ['AAPL', 'AMZN',
-              'BA',
-              'FB',
-              'GE', 'GOOGL',
-              'JPM',
-              'M', 'MSFT',
-              'NOC',
-              'RTN',
-              'SBUX',
-              'TGT',
-              'TSLA',
-              'V',
-              'WMT']
+stock_port = ['SCHX', 'SCHM', 'SCHA', 'SCHF']
 
 # Create empty dataframe of daily stock returns matrix
 stock_ret_mat = pd.DataFrame(columns=stock_port)
@@ -62,7 +50,7 @@ corr_matrix = stock_ret_mat.corr(method='pearson')
 returns = stock_ret_mat  # matrix, 250 daily returns for each stock
 mean_returns = returns.mean()  # array, 1 average return for each stock
 cov_matrix = returns.cov()  # square matrix of each stock
-NUM_PORTFOLIOS = 25000
+NUM_PORTFOLIOS = 10000
 RISK_FREE_RATE = 0.0152  # US Treasury, 52-week value start of 2020
 
 results, weights = randomPortfolios(NUM_PORTFOLIOS, mean_returns, cov_matrix, RISK_FREE_RATE)
@@ -71,37 +59,38 @@ results, weights = randomPortfolios(NUM_PORTFOLIOS, mean_returns, cov_matrix, RI
 msr_index = np.argmax(results[2])
 std_sharpe = results[0, msr_index]
 return_sharpe = results[1, msr_index]
-print(std_sharpe)
-print(return_sharpe)
+print('MSR volatility: %0.4f' % std_sharpe)
+print('MSR return: %0.4f' % return_sharpe)
 msr_array = weights[msr_index].round(4)
-msr_alloc = pd.DataFrame(msr_array, index=stock_port, columns=['Allocation']).T
-#print(msr_alloc)
-#print(type(msr_alloc))
-msr_alloc = msr_alloc.T.sort_values(by=['Allocation'], ascending=False)
-#print(msr_alloc)
-#print(type(msr_alloc))
-msr_alloc.plot.pie(subplots=True,
-                   autopct='%1.2f%%',
-                   legend=False,
-                   pctdistance=1.1,
-                   labeldistance=1.3)
+msr_alloc = pd.DataFrame(msr_array, index=stock_port, columns=['Allocation'])
+plt.figure()
+plt.bar(x=np.arange(len(msr_array)),
+        height=msr_array,
+        width=0.5,
+        align='center',
+        tick_label=msr_alloc.index)
 plt.title('Allocation: Max Sharpe Ratio')
 plt.show()
 
 # Global minimum volatility
 gmv_index = np.argmin(results[0])
 std_gmv = results[0, gmv_index]
+print('GMV volatility: %0.4f' % std_gmv)
 return_gmv = results[1, gmv_index]
+print('GMV return: %0.4f' % return_gmv)
 gmv_array = weights[gmv_index].round(4)
-gmv_alloc = pd.DataFrame(gmv_array, index=stock_port, columns=['Allocation']).T
-gmv_alloc = gmv_alloc.T.sort_values(by=['Allocation'], ascending=True)
-gmv_alloc.plot.pie(subplots=True,
-                   autopct='%1.2f%%',
-                   legend=False,
-                   pctdistance=1.1,
-                   labeldistance=1.3)
+gmv_alloc = pd.DataFrame(gmv_array, index=stock_port, columns=['Allocation'])
+plt.figure()
+plt.bar(x=np.arange(len(gmv_array)),
+        height=gmv_array,
+        width=0.5,
+        align='center',
+        tick_label=gmv_alloc.index)
+plt.title('Allocation: Max Sharpe Ratio')
 plt.title('Allocation: Global Minimum Volatility')
 plt.show()
+
+# Efficient frontier
 plt.figure()
 plt.scatter(x=results[0, :],
             y=results[1, :],
